@@ -31,7 +31,7 @@ func unescape(raw string) string {
 func (p osxProvider) Get(Service, Username string) (string, error) {
 	args := []string{"find-generic-password",
 		"-s", Service,
-		"-a", Username,
+		"-a", escape(Username),
 		"-g"}
 	c := exec.Command("/usr/bin/security", args...)
 	o, err := c.CombinedOutput()
@@ -50,10 +50,33 @@ func (p osxProvider) Get(Service, Username string) (string, error) {
 	return unescape(matches[1]), nil
 }
 
+var escapableRegexp = regexp.MustCompile(`[^ -[\]-~]`)
+
+func escapeOne(raw []byte) []byte {
+	fmt.Printf("escape one: %v\n", raw)
+	fmt.Printf("=> byte = %v => fmt = %s => []byte = %v\n",
+		byte(raw[0]), fmt.Sprintf("\\%.3o", byte(raw[0])),
+		[]byte(fmt.Sprintf("\\%.3o", byte(raw[0]))))
+	return []byte(fmt.Sprintf("\\%.3o", byte(raw[0])))
+}
+
+func escape(raw string) string {
+	if !escapableRegexp.MatchString(raw) {
+		fmt.Printf("No match! %s\n", raw)
+		return raw
+	} else {
+		fmt.Printf("Escaping: %v\n", raw)
+		fmt.Printf("=> []byte = (%v) => replaceAll = (%v) => string => %v\n",
+			[]byte(raw), escapableRegexp.ReplaceAllFunc([]byte(raw), escapeOne),
+			string(escapableRegexp.ReplaceAllFunc([]byte(raw), escapeOne)))
+		return string(escapableRegexp.ReplaceAllFunc([]byte(raw), escapeOne))
+	}
+}
+
 func (p osxProvider) Set(Service, Username, Password string) error {
 	args := []string{"add-generic-password",
 		"-s", Service,
-		"-a", Username,
+		"-a", escape(Username),
 		"-w", Password,
 		"-U"}
 	c := exec.Command("/usr/bin/security", args...)

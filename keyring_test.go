@@ -38,6 +38,7 @@ func TestBasicSetGet(t *testing.T) {
 		{"alice", "cr4zyp!s\\%"},
 		{"punctuator", "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"},
 		{"pierre", "bérets"},
+		{"范实穆", "不可告人"},
 		{"unibomba", "I❤Unicode"},
 	}
 	for _, testCase := range cases {
